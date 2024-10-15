@@ -1,0 +1,59 @@
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress_container
+    restart: always
+    ports:
+      - 8082:80
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/wordpress_data/html:/var/www/html
+    depends_on:
+      - wordpress-db
+    networks:
+      - web-apps_shared_network
+
+  wordpress-db:
+    image: mysql:5.7
+    container_name: wordpress-db_container
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./volumes/wordpress-db_data/mysql:/var/lib/mysql
+    networks:
+      - web-apps_shared_network
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy_container
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./volumes/caddy_data/data:/data
+      - ./volumes/caddy_config/config:/config
+    depends_on:
+      - wordpress
+    networks:
+      - web-apps_shared_network
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer_container
+    restart: always
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./volumes/portainer_data/data:/data
+    networks:
+      - web-apps_shared_network
+
+networks:
+  web-apps_shared_network:
+    driver: bridge
