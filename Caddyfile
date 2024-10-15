@@ -1,0 +1,17 @@
+# WordPress Configuration
+www.yourdomain.tld {
+    reverse_proxy wordpress_container:80
+
+    encode gzip
+    file_server
+
+    php_fastcgi wordpress_container:9000
+
+    @disallowed {
+        path /xmlrpc.php
+        path *.sql
+        path /wp-content/uploads/*.php
+    }
+
+    rewrite @disallowed '/index.php'
+}
